@@ -10,7 +10,14 @@ class CreateListingForm(forms.Form):
     starting_bid = forms.DecimalField(
         max_digits=15, decimal_places=2, label="Starting bid:"
     )
-    category = forms.ChoiceField(widget=forms.Select())
+    category = forms.CharField(widget=forms.Select(choices=(
+        ("Goods", "Goods"), 
+        ("Vehicles", "Vehicles"), 
+        ("Clothes", "Clothes"), 
+        ("Other", "Other")
+        )
+                                                   )
+                               )
 
 
 class CommentForm(forms.Form):

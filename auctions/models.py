@@ -19,8 +19,8 @@ class AuctionListing(models.Model):
     )
     photo = models.URLField(name="photo")
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    # is_closed = models.BooleanField(name="is_closed", default=False)
-    # category = models.CharField(max_length=30, name="category", default="Goods")
+    is_closed = models.BooleanField(name="is_closed", default=False)
+    category = models.CharField(max_length=30, name="category", default="Goods")
     
     def __str__(self):
         return f"Title: {self.title}"

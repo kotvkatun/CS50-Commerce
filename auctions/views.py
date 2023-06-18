@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest
 from django.shortcuts import render, get_object_or_404, get_list_or_404
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
@@ -79,14 +79,17 @@ def create_listing(request):
 @login_required
 def save_listing(request):
     listing_form = CreateListingForm(request.POST, request.FILES)
-    # Terrible hack, but validation is not needed for this project
-    listing_form.is_valid()
+    
+    if not listing_form.is_valid():
+        return HttpResponseBadRequest
+    
     new_listing = AuctionListing(
         title=listing_form.cleaned_data["title"],
         description=listing_form.cleaned_data["description"],
         photo=listing_form.cleaned_data["photo"],
-        starting_bid=slisting_form.cleaned_data["starting_bid"],
+        starting_bid=listing_form.cleaned_data["starting_bid"],
         owner=request.user,
+        category=listing_form.cleaned_data["category"]
     )
     new_listing.save()
     
@@ -262,13 +265,13 @@ def remove_from_watchlist_view(request):
 
 @require_http_methods(["POST"])
 @login_required
-def close_listing_view(request):
+def close_listing_view(request, listing_id):
     """
     Closes the listing, prevents further bids
     """
-    listing = AuctionListing.objects.get(id=request.POST["listing_id"])
+    listing = AuctionListing.objects.get(id=listing_id)
     if request.user == listing.owner:
         listing.is_closed = True
         listing.save()
     
-    return HttpResponseRedirect(reverse("listing", args=listing_id))
+    return HttpResponseRedirect(reverse("listing", args=(listing_id,)))

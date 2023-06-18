@@ -22,5 +22,5 @@ urlpatterns = [
         views.post_comment_view,
         name="post_comment",
     ),
-    path("listings/<int:listing_id>/", views.close_listing_view, name="close listing")
+    path("listings/<int:listing_id>/close", views.close_listing_view, name="close listing")
 ]

@@ -12,7 +12,7 @@
         <p>{{ bid }}</p>
     {% endif %}
     {% if request.user == listing.owner %}
-        <form action={% url 'close listing' %} method="POST">
+        <form action={% url 'close listing' listing.id %} method="POST">
             {% csrf_token %}
             <input type="hidden" value={{ listing.id }}>
             <input class="btn btn-danger" type="submit" value="Close listing">
