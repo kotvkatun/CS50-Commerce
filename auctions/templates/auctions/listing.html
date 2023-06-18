@@ -1,0 +1,63 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %}
+    {{ listing.title }}
+{% endblock %}
+
+{% block body %}
+    <p><h1>{{ listing.title }}</h1></p>
+    {% if listing.is_closed %}
+        <p>Bidding closed</p>
+    {% else %}
+        <p>{{ bid }}</p>
+    {% endif %}
+    {% if request.user == listing.owner %}
+        <form action={% url 'close listing' %} method="POST">
+            {% csrf_token %}
+            <input type="hidden" value={{ listing.id }}>
+            <input class="btn btn-danger" type="submit" value="Close listing">
+        </form>
+    {% elif user.is_authenticated %}
+        <form action={% url 'listing' listing.id %} method="POST">
+            {% csrf_token %}
+            {{ bid_form }}
+            <input type="submit" value="Place your bid">
+        </form>
+        <br>
+    {% endif %}
+    {% if message %}
+        {{ message }}
+    {% endif %}
+    <br>
+    {% if not in_watchlist %}
+        <form action={% url 'add to watchlist' %} method="POST">
+            {% csrf_token %}
+            <input type="hidden" value={{ request.user }} name="user">
+            <input type="hidden" value={{ listing.id }} name="listing_id">
+            <input class="btn btn-primary" type="submit" value="Add to Watchlist">
+        </form>
+    {% else %}
+        <button class="btn btn-outline-secondary" type="button" disabled>Already in watchlist</button>
+    {% endif %}
+    <br>
+    <div>
+        <img src={{ listing.photo }}>
+    </div>
+    <p>{{ listing.description }}</p>
+    <br>
+    <br>
+    <br>
+    <form action={% url 'post_comment' listing.id %} method="POST">
+        {% csrf_token %}
+        {{ comment_form }}
+        <input type="submit" value="Submit comment">
+    </form>
+    {% if comments %}
+        {% for comment in comments %}
+            <div class="border border-primary border-3 rounded">
+                <p><b>{{ comment.author }}</b></p>
+                {{ comment.comment }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endblock %}

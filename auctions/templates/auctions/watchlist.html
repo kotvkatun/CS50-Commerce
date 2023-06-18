@@ -1,0 +1,46 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %}
+    Watchlist
+{% endblock %}
+
+{% block body %}
+    <h2>Watchlist</h2>
+    {% if watchlist %}
+        {% for listing in watchlist %}
+            <div class="container">
+                <div class="row border border-primary border-3 rounded">
+                    <div class="col-sm">
+                        {% if listing.photo %}
+                            <img src={{ listing.photo }}  class="rounded float-start img-thumbnail" height="100" width="200">
+                        {% else %}
+                            <p text-align="center">NO IMAGE</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-sm">
+                        <a href={% url 'listing' listing.id %}><h2>{{ listing.title }}</h2></a>
+                        <p><i>Description:</i></p>
+                        {{ listing.description }}
+                    </div>
+                    <div class="col-sm">
+                        {% if listing.is_closed %}
+                            <p><b>Closed</b></p>
+                        {% else %}
+                            <p><i>Current bid:</i></p>
+                            <h2>{{ listing.starting_bid }}</h2>
+                        {% endif %}
+                    </div>
+                    <div class="col-sm">
+                        <form action={% url 'remove_from_watchlist' %} method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" value={{ listing.id }} name="listing_id">
+                            <input class="btn btn-outline-danger" type="submit" value="Remove from Watchlist">
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        {% else %}
+            <div text-align="center">No items in the watchlist. Maybe add some?</div>
+    {% endif %}
+{% endblock %}

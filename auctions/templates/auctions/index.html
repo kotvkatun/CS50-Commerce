@@ -1,0 +1,33 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>Active Listings</h2>
+    {% if all_listings %}
+        {% for listing in all_listings %}
+            <div class="container">
+                <div class="row border border-primary border-3 rounded">
+                    <div class="col-sm">
+                        {% if listing.photo %}
+                            <img src={{ listing.photo }}  class="rounded float-start img-thumbnail" height="100" width="200">
+                        {% else %}
+                            <p text-align="center">NO IMAGE</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-sm">
+                        <a href={% url 'listing' listing.id %}><h2>{{ listing.title }}</h2></a>
+                        <p><i>Description:</i></p>
+                        {{ listing.description }}
+                    </div>
+                    <div class="col-sm">
+                        {% if listing.is_closed %}
+                            <p><b>Closed</b></p>
+                        {% else %}
+                            <p><i>Current bid:</i></p>
+                            <h2>{{ listing.starting_bid }}</h2>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endblock %}
