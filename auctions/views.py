@@ -99,8 +99,8 @@ def listing_view(request, listing_id, message=None):
     and renders it
     Also there should be a comments/bids form somewhere
     """
+
     # Check if the user's watchlist contains current listing
-    in_watchlist = False
     watchlist_ids = []
     if Watchlist.objects.filter(watchlist_owner=request.user).exists():
         for watchlist_listing in Watchlist.objects.filter(watchlist_owner=request.user):
@@ -108,15 +108,24 @@ def listing_view(request, listing_id, message=None):
             
     current_listing = AuctionListing.objects.get(id=listing_id)
     
-    if listing_id in watchlist_ids:
-        in_watchlist = True
+    in_watchlist = True if listing_id in watchlist_ids else False
     # Try to fetch current highest bid
     try:
         current_highest_bid_obj = CurrentHighestBid.objects.get(listing=current_listing)
         current_highest_bid = Bid.objects.get(listing=current_listing).bid_amount
     except CurrentHighestBid.DoesNotExist:
         current_highest_bid = None
-        
+    
+    render_dict = {
+        "bid": None,
+        "listing": AuctionListing.objects.get(id=listing_id),
+        "comment_form": CommentForm(),
+        "bid_form": BidForm(),
+        "comments": Comment.objects.filter(listing=listing_id),
+        "in_watchlist": in_watchlist,
+        "message": message,
+    }
+    
     # Bidding logic
     if request.method == "POST" and current_listing.is_closed == False:
         # Obtain bid amount from the form
@@ -130,18 +139,12 @@ def listing_view(request, listing_id, message=None):
         starting_bid = listing.starting_bid
 
         if bid_amount < starting_bid:
+            render_dict["bid"] = current_listing.starting_bid if current_highest_bid is None else current_highest_bid
+            render_dict["message"] = "The bid you have placed is lower than the starting bid"
             return render(
                 request,
                 "auctions\listing.html",
-                {
-                    "bid": current_listing.starting_bid if current_highest_bid is None else current_highest_bid,
-                    "listing": AuctionListing.objects.get(id=listing_id),
-                    "comment_form": CommentForm(),
-                    "bid_form": BidForm(),
-                    "comments": Comment.objects.filter(listing=listing_id),
-                    "in_watchlist": in_watchlist,
-                    "message": "The bid you have placed is lower than the starting bid",
-                },
+                render_dict,
             )
 
         if current_highest_bid is None or bid_amount > current_highest_bid:
@@ -158,46 +161,26 @@ def listing_view(request, listing_id, message=None):
                     listing=current_listing,
                     bid=new_bid
                 )
+            render_dict["bid"] = bid_amount
             return render(
                 request,
                 "auctions\listing.html",
-                {
-                    "bid": bid_amount,
-                    "listing": AuctionListing.objects.get(id=listing_id),
-                    "comment_form": CommentForm(),
-                    "bid_form": BidForm(),
-                    "comments": Comment.objects.filter(listing=listing_id),
-                    "in_watchlist": in_watchlist,
-                    "message": None,
-                },
+                render_dict,
             )
         else:
+            render_dict["bid"] = current_highest_bid
+            render_dict["message"] = "The bid you have placed is lower than the current highest bid"
             return render(
                 request,
                 "auctions\listing.html",
-                {
-                    "bid": current_highest_bid,
-                    "listing": AuctionListing.objects.get(id=listing_id),
-                    "comment_form": CommentForm(),
-                    "bid_form": BidForm(),
-                    "comments": Comment.objects.filter(listing=listing_id),
-                    "in_watchlist": in_watchlist,
-                    "message": "The bid you have placed is lower than the current highest bid",
-                },
+                render_dict,
             )
-    
+    render_dict["bid"] = current_listing.starting_bid if current_highest_bid is None else current_highest_bid
+    render_dict["message"] = message
     return render(
         request,
         "auctions\listing.html",
-        {
-            "bid": current_listing.starting_bid if current_highest_bid is None else current_highest_bid,
-            "listing": current_listing,
-            "comment_form": CommentForm(),
-            "bid_form": BidForm(),
-            "comments": Comment.objects.filter(listing=listing_id),
-            "in_watchlist": in_watchlist,
-            "message": message,
-        },
+        render_dict,
     )
 
 
